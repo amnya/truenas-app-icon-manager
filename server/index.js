@@ -88,8 +88,9 @@ app.post('/api/mappings/:appName', upload.single('iconFile'), asyncHandler(async
     finalIcon = fileToDataUri(req.file);
     source = 'upload';
   } else if (iconUrl) {
-    finalIcon = validateIconUrl(iconUrl);
-    source = 'url';
+    validateIconUrl(iconUrl);
+    finalIcon = await fetchIconToDataUri(iconUrl);
+    source = 'url-download';
   } else if (icon) {
     finalIcon = validateDataUri(icon);
     source = 'data-uri';

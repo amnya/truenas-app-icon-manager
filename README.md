@@ -1,12 +1,7 @@
-# TrueNAS App Icon Manager
-
-<p align="center">
-  <img src="docs/assets/dashboard-dark.png" alt="TrueNAS App Icon Manager dashboard">
-</p>
-
-<p align="center">
-  <img src="docs/assets/app-icon.png" alt="TrueNAS App Icon Manager icon" width="72">
-</p>
+<h1>
+  <img src="docs/assets/app-icon.png" alt="TrueNAS App Icon Manager icon" width="42" align="left">
+  TrueNAS App Icon Manager
+</h1>
 
 **TrueNAS App Icon Manager** is a self-hosted web application for managing custom app icons in the **TrueNAS SCALE Apps UI**.
 
@@ -15,6 +10,10 @@ It is built for **TrueNAS SCALE 25.10.1** and the newer **Docker-based Apps** sy
 Repository: [github.com/amnya/truenas-app-icon-manager](https://github.com/amnya/truenas-app-icon-manager)
 
 This project is unofficial and community-maintained. It is not affiliated with or endorsed by iXsystems.
+
+<p align="center">
+  <img src="docs/assets/dashboard-dark.png" alt="TrueNAS App Icon Manager dashboard">
+</p>
 
 ## Why This Exists
 
@@ -50,7 +49,7 @@ TrueNAS App Icon Manager solves that by storing your desired icon mappings separ
 - Filters for all apps, missing icons only, and custom apps only
 - Upload PNG, SVG, JPEG, or WebP icons
 - Automatically converts uploaded icons to base64 data URIs
-- Manually enter an icon URL
+- Manually enter an icon URL, which is downloaded and stored as a base64 data URI
 - Manually paste a base64 data URI
 - Search and use suggested icons from [Dashboard Icons](https://dashboardicons.com/)
 - Override Dashboard Icons search terms manually, for example search `Gotify` for an app named `igotify_custom`
@@ -63,12 +62,6 @@ TrueNAS App Icon Manager solves that by storing your desired icon mappings separ
 - Includes light and dark mode
 - Provides REST API endpoints for automation
 - Dockerfile and TrueNAS custom app compose example included
-
-## Screenshots
-
-### Dashboard Icons Search
-
-![Dashboard Icons search and suggested icon picker in dark mode](docs/assets/dashboard-dark-suggestions.png)
 
 ## Safety Warning
 
@@ -310,7 +303,7 @@ This feature requires outbound HTTPS access from the container to Dashboard Icon
 
 ## Icon Storage Format
 
-Uploaded and accepted suggested icons are stored as base64 data URIs:
+Uploaded icons, accepted suggested icons, and manually entered icon URLs are stored as base64 data URIs:
 
 ```text
 data:image/png;base64,iVBORw0KGgo...
@@ -321,6 +314,8 @@ The stored value is injected exactly into:
 ```text
 <app-name>.metadata.icon
 ```
+
+Remote URLs are fetched once at save time. The stored mapping does not depend on that remote URL staying online later.
 
 Local filesystem paths are not used as the primary icon source.
 
@@ -362,6 +357,8 @@ curl -X POST http://<truenas-host>:8099/api/icon-suggestions/igotify_custom/use 
 ```bash
 curl -F "iconUrl=https://example.com/icon.png" http://<truenas-host>:8099/api/mappings/alphaedge
 ```
+
+The app downloads the URL immediately, validates the image, converts it to a base64 data URI, and stores that data URI in `/config/icon-mappings.json`.
 
 ### Save A Base64 Data URI
 

@@ -235,7 +235,7 @@ function AppEditor({ app, onSaved, onRemoved }) {
   }
 
   return (
-    <div className="space-y-4 border-t border-line pt-4">
+    <div className="mt-4 space-y-4">
       <SuggestedIcon app={app} onUsed={onSaved} />
       <div className="grid gap-4 lg:grid-cols-[1fr_220px]">
         <div className="space-y-3">
