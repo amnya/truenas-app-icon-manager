@@ -1,0 +1,75 @@
+name: Bug report
+description: Report something that is not working correctly.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve TrueNAS App Icon Manager. Please include enough detail to reproduce the problem safely.
+  - type: input
+    id: version
+    attributes:
+      label: App version or Docker image tag
+      description: Example: v1.0.0 or ghcr.io/amnya/truenas-app-icon-manager:latest
+      placeholder: v1.0.0
+    validations:
+      required: true
+  - type: input
+    id: truenas-version
+    attributes:
+      label: TrueNAS SCALE version
+      placeholder: 25.10.1
+    validations:
+      required: true
+  - type: dropdown
+    id: install-method
+    attributes:
+      label: Install method
+      options:
+        - TrueNAS custom app with GHCR image
+        - TrueNAS custom app with locally built image
+        - Docker Compose outside TrueNAS
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the bug and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the app
+        2. Search for ...
+        3. Click ...
+        4. See error ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or errors
+      description: Paste logs from the app UI, container logs, or browser console. Remove secrets or private hostnames if needed.
+      render: text
+  - type: textarea
+    id: compose
+    attributes:
+      label: Compose or deployment details
+      description: Include your compose YAML or TrueNAS custom app settings if relevant. Remove private values first.
+      render: yaml
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Safety checks
+      options:
+        - label: I removed secrets, tokens, and private credentials from this report.
+          required: true
+        - label: I understand this app patches generated TrueNAS metadata and backups may be relevant.
+          required: true

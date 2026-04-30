@@ -1,0 +1,19 @@
+node_modules/
+dist/
+.npm-cache/
+.tmp-tests/
+.env
+*.log
+
+# Local runtime/config data
+config/
+backups/
+icon-mappings.json
+icon-manager.log
+
+# OS/editor junk
+.DS_Store
+Thumbs.db
+Desktop.ini
+.vscode/
+.idea/

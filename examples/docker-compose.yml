@@ -1,0 +1,16 @@
+services:
+  truenas-app-icon-manager:
+    image: ghcr.io/amnya/truenas-app-icon-manager:latest
+    container_name: truenas-app-icon-manager
+    restart: unless-stopped
+    ports:
+      - "8099:8080"
+    environment:
+      IX_APPS_PATH: /ix-apps
+      METADATA_FILE: /ix-apps/metadata.yaml
+      CONFIG_DIR: /config
+      POLL_INTERVAL_SECONDS: "30"
+      MAX_ICON_SIZE_BYTES: "524288"
+    volumes:
+      - /mnt/.ix-apps:/ix-apps
+      - /mnt/AMNYA Pool/Applications/TrueNAS_App_Icon_Manager:/config

@@ -1,0 +1,14 @@
+node_modules
+dist
+.git
+.github
+.npm-cache
+.tmp-tests
+.env
+.DS_Store
+Thumbs.db
+npm-debug.log
+*.log
+config
+backups
+docs

@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Support the project
+    url: https://github.com/sponsors/amnya
+    about: Sponsor development on GitHub.
+  - name: Ko-fi
+    url: https://ko-fi.com/amnya
+    about: Support development on Ko-fi.
