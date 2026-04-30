@@ -11,6 +11,7 @@ services:
       CONFIG_DIR: /config
       POLL_INTERVAL_SECONDS: "30"
       MAX_ICON_SIZE_BYTES: "524288"
+      BACKUP_RETENTION_COUNT: "25"
     volumes:
       - /mnt/.ix-apps:/ix-apps
       - /mnt/AMNYA Pool/Applications/TrueNAS_App_Icon_Manager:/config

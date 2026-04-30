@@ -56,6 +56,7 @@ TrueNAS App Icon Manager solves that by storing your desired icon mappings separ
 - Stores mappings persistently in `/config/icon-mappings.json`
 - Patches `<app-name>.metadata.icon` in TrueNAS generated metadata YAML
 - Creates timestamped backups before every metadata write
+- Keeps the latest 25 metadata backups by default
 - Reapplies saved icons on startup
 - Polls metadata every 30 seconds and restores missing managed icons
 - Includes a Reapply now button
@@ -127,6 +128,7 @@ Environment variables:
 | `CONFIG_DIR` | `/config` | Persistent config directory |
 | `POLL_INTERVAL_SECONDS` | `30` | Background reapply interval |
 | `MAX_ICON_SIZE_BYTES` | `524288` | Max uploaded/fetched icon size |
+| `BACKUP_RETENTION_COUNT` | `25` | Number of metadata backups to keep |
 | `PORT` | `8080` | Internal HTTP port |
 
 ## Quick Install With Prebuilt Image
@@ -175,6 +177,7 @@ services:
       CONFIG_DIR: /config
       POLL_INTERVAL_SECONDS: "30"
       MAX_ICON_SIZE_BYTES: "524288"
+      BACKUP_RETENTION_COUNT: "25"
     volumes:
       - /mnt/.ix-apps:/ix-apps
       - /mnt/AMNYA Pool/Applications/TrueNAS_App_Icon_Manager:/config
@@ -232,6 +235,7 @@ services:
       CONFIG_DIR: /config
       POLL_INTERVAL_SECONDS: "30"
       MAX_ICON_SIZE_BYTES: "524288"
+      BACKUP_RETENTION_COUNT: "25"
     volumes:
       - /mnt/.ix-apps:/ix-apps
       - /mnt/AMNYA Pool/Applications/TrueNAS_App_Icon_Manager:/config
@@ -384,6 +388,7 @@ Metadata patching is designed to be conservative:
 - Never patch if YAML parsing fails
 - Preserve unrelated metadata fields
 - Create a timestamped backup before every write
+- Prune old backups after successful writes, keeping the latest 25 by default
 - Write to a temporary file first
 - Validate generated YAML before replacing the original file
 - Multiple reapply runs do not duplicate icon keys

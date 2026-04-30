@@ -121,6 +121,29 @@ async function writeMetadataAtomically(metadata) {
   return backupPath;
 }
 
+async function pruneOldBackups() {
+  const retentionCount = config.backupRetentionCount;
+  if (retentionCount <= 0) return;
+
+  const entries = await fs.readdir(paths.backupsDir, { withFileTypes: true }).catch(() => []);
+  const backups = await Promise.all(
+    entries
+      .filter((entry) => entry.isFile() && /^metadata\.yaml\.\d{8}-\d{6}\.bak$/.test(entry.name))
+      .map(async (entry) => {
+        const backupPath = path.join(paths.backupsDir, entry.name);
+        const stat = await fs.stat(backupPath);
+        return { path: backupPath, mtimeMs: stat.mtimeMs };
+      })
+  );
+
+  backups
+    .sort((a, b) => b.mtimeMs - a.mtimeMs)
+    .slice(retentionCount)
+    .forEach((backup) => {
+      fs.rm(backup.path, { force: true }).catch(() => {});
+    });
+}
+
 let pendingReapply = null;
 let lastWriteAt = 0;
 const metadataStatus = {
@@ -174,6 +197,7 @@ export async function reapplyMappings({ reason = 'manual', debounceMs = 0 } = {}
       }
 
       const backupPath = await writeMetadataAtomically(metadata);
+      await pruneOldBackups();
       lastWriteAt = Date.now();
       updateMetadataStatus({ reason, result: 'changed', patchedApps, backupPath });
       await log('info', 'Patched TrueNAS generated metadata YAML', {

@@ -35,7 +35,8 @@ app.get('/api/health', asyncHandler(async (_req, res) => {
     service: 'TrueNAS App Icon Manager',
     metadataFile: config.metadataFile,
     configDir: config.configDir,
-    pollIntervalSeconds: config.pollIntervalSeconds
+    pollIntervalSeconds: config.pollIntervalSeconds,
+    backupRetentionCount: config.backupRetentionCount
   });
 }));
 

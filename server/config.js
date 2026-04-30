@@ -11,6 +11,7 @@ export const config = {
   configDir: process.env.CONFIG_DIR || '/config',
   pollIntervalSeconds: toInt(process.env.POLL_INTERVAL_SECONDS, 30),
   maxIconSizeBytes: toInt(process.env.MAX_ICON_SIZE_BYTES, 524288),
+  backupRetentionCount: toInt(process.env.BACKUP_RETENTION_COUNT, 25),
   port: toInt(process.env.PORT, 8080)
 };
 

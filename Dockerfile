@@ -2,7 +2,7 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 COPY . .
 RUN npm run build
 
@@ -14,11 +14,12 @@ ENV NODE_ENV=production \
     CONFIG_DIR=/config \
     POLL_INTERVAL_SECONDS=30 \
     MAX_ICON_SIZE_BYTES=524288 \
+    BACKUP_RETENTION_COUNT=25 \
     PORT=8080
 
 WORKDIR /app
 COPY package*.json ./
-RUN npm install --omit=dev
+RUN npm ci --omit=dev
 COPY --from=build /app/server ./server
 COPY --from=build /app/dist ./dist
 
