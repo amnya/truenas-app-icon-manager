@@ -1,6 +1,12 @@
 # TrueNAS App Icon Manager
 
-![TrueNAS App Icon Manager icon](docs/assets/app-icon.png)
+<p align="center">
+  <img src="docs/assets/dashboard-dark.png" alt="TrueNAS App Icon Manager dashboard">
+</p>
+
+<p align="center">
+  <img src="docs/assets/app-icon.png" alt="TrueNAS App Icon Manager icon" width="72">
+</p>
 
 **TrueNAS App Icon Manager** is a self-hosted web application for managing custom app icons in the **TrueNAS SCALE Apps UI**.
 
@@ -60,15 +66,7 @@ TrueNAS App Icon Manager solves that by storing your desired icon mappings separ
 
 ## Screenshots
 
-### Dashboard Overview
-
-![TrueNAS App Icon Manager dashboard in light mode](docs/assets/dashboard-light.png)
-
-![TrueNAS App Icon Manager dashboard in dark mode](docs/assets/dashboard-dark.png)
-
 ### Dashboard Icons Search
-
-![Dashboard Icons search and suggested icon picker in light mode](docs/assets/dashboard-light-suggestions.png)
 
 ![Dashboard Icons search and suggested icon picker in dark mode](docs/assets/dashboard-dark-suggestions.png)
 
