@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { AlertTriangle, Check, Coffee, ExternalLink, Github, Heart, ImagePlus, Moon, RefreshCw, Search, Sparkles, Sun, Trash2, Upload } from 'lucide-react';
+import { AlertTriangle, Check, Coffee, ExternalLink, Github, Heart, ImagePlus, Link, Moon, RefreshCw, Search, Sparkles, Sun, Trash2, Upload } from 'lucide-react';
 import packageJson from '../../package.json';
 import './styles.css';
 
@@ -39,6 +39,14 @@ function IconPreview({ src, title }) {
       )}
     </div>
   );
+}
+
+function formatPort(port) {
+  const protocol = port.protocol ? `${port.protocol.toUpperCase()} ` : '';
+  if (port.containerPort && port.containerPort !== port.hostPort) {
+    return `${protocol}${port.hostPort}->${port.containerPort}`;
+  }
+  return `${protocol}${port.hostPort}`;
 }
 
 function defaultIconSearchTerm(app) {
@@ -237,12 +245,17 @@ function AppEditor({ app, onSaved, onRemoved }) {
   return (
     <div className="mt-4 space-y-4">
       <SuggestedIcon app={app} onUsed={onSaved} />
-      <div className="grid gap-4 lg:grid-cols-[1fr_220px]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_260px]">
         <div className="space-y-3">
+          <div>
+            <p className="text-sm font-semibold text-ink dark:text-slate-100">App icon</p>
+            <p className="text-xs text-slate-600 dark:text-slate-300">Upload an image, use Dashboard Icons, or save an image URL as an offline data URI.</p>
+          </div>
+
           <div className="inline-flex rounded-lg border border-line bg-white dark:border-slate-800 dark:bg-slate-900 p-1">
             {[
               ['file', 'Upload'],
-              ['url', 'URL'],
+              ['url', 'Icon URL'],
               ['data', 'Base64 data URI']
             ].map(([id, label]) => (
               <button
@@ -257,7 +270,7 @@ function AppEditor({ app, onSaved, onRemoved }) {
           </div>
 
           {mode === 'file' ? (
-            <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 bg-white px-4 py-4 text-sm dark:bg-slate-950 text-slate-600 dark:text-slate-300 hover:border-ocean">
+            <label className="flex max-w-2xl cursor-pointer items-center gap-3 rounded-lg border border-dashed border-slate-300 bg-white px-4 py-4 text-sm text-slate-600 hover:border-ocean dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
               <Upload className="h-5 w-5" aria-hidden="true" />
               <span className="truncate">{file ? file.name : 'Choose PNG, SVG, JPEG, or WebP up to 512 KB'}</span>
               <input
@@ -283,32 +296,122 @@ function AppEditor({ app, onSaved, onRemoved }) {
           {error && <p className="text-sm font-medium text-red-700 dark:text-red-300">{error}</p>}
         </div>
 
-        <div className="flex items-end justify-between gap-3 lg:flex-col lg:items-stretch">
-          <div className="flex items-center gap-3 lg:justify-end">
+        <div className="flex items-end justify-between gap-3 xl:flex-col xl:items-stretch">
+          <div className="flex items-center gap-3 xl:justify-end">
             <IconPreview src={preview} title={app.title} />
-            <div className="text-xs text-slate-500 dark:text-slate-400 lg:hidden">Preview</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400 xl:hidden">Preview</div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap justify-end gap-2">
             <button
               type="button"
               onClick={save}
               disabled={busy}
-              className="inline-flex items-center gap-2 rounded-lg bg-ocean px-3 py-2 text-sm font-semibold text-white hover:bg-teal-800 dark:bg-teal-700 dark:hover:bg-teal-600 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex whitespace-nowrap items-center gap-2 rounded-lg bg-ocean px-3 py-2 text-sm font-semibold text-white hover:bg-teal-800 dark:bg-teal-700 dark:hover:bg-teal-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Check className="h-4 w-4" aria-hidden="true" />
-              Save
+              Save icon
             </button>
             <button
               type="button"
               onClick={remove}
-              disabled={busy || !app.managed}
-              className="inline-flex items-center gap-2 rounded-lg border border-line bg-white dark:border-slate-800 dark:bg-slate-900 px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={busy || !app.iconManaged}
+              className="inline-flex whitespace-nowrap items-center gap-2 rounded-lg border border-line bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
             >
               <Trash2 className="h-4 w-4" aria-hidden="true" />
-              Remove
+              Remove icon
             </button>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function PortalEditor({ app, onSaved, onRemoved }) {
+  const [portalUrl, setPortalUrl] = useState(app.desiredPortalUrl || app.portalUrl || '');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    setPortalUrl(app.desiredPortalUrl || app.portalUrl || '');
+    setError('');
+  }, [app.name, app.desiredPortalUrl, app.portalUrl]);
+
+  async function save() {
+    setBusy(true);
+    setError('');
+    try {
+      await api(`/api/portals/${encodeURIComponent(app.name)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: portalUrl.trim() })
+      });
+      await onSaved();
+    } catch (saveError) {
+      setError(saveError.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function remove() {
+    setBusy(true);
+    setError('');
+    try {
+      await api(`/api/portals/${encodeURIComponent(app.name)}`, { method: 'DELETE' });
+      setPortalUrl('');
+      await onRemoved();
+    } catch (removeError) {
+      setError(removeError.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!app.custom_app) return null;
+
+  return (
+    <div className="mt-4 rounded-lg border border-line bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
+      <div className="flex flex-col gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <Link className="h-5 w-5 shrink-0 text-ocean" aria-hidden="true" />
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-ink dark:text-slate-100">Web UI button</p>
+            <p className="text-xs text-slate-600 dark:text-slate-300">Set the URL TrueNAS should open for this custom app, using that app's host port.</p>
+          </div>
+        </div>
+
+        <div className="grid gap-2 lg:grid-cols-[1fr_auto_auto]">
+          <input
+            value={portalUrl}
+            onChange={(event) => setPortalUrl(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') save();
+            }}
+            placeholder="http://<truenas-host>:<app-port>"
+            className="min-w-0 rounded-lg border border-line bg-white px-3 py-2 text-sm outline-none focus:border-ocean focus:ring-2 focus:ring-teal-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-teal-950"
+          />
+          <button
+            type="button"
+            onClick={save}
+            disabled={busy}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-ocean px-3 py-2 text-sm font-semibold text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-teal-700 dark:hover:bg-teal-600"
+          >
+            <Check className="h-4 w-4" aria-hidden="true" />
+            Save Web UI
+          </button>
+          <button
+            type="button"
+            onClick={remove}
+            disabled={busy || !app.portalManaged}
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-line bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            <Trash2 className="h-4 w-4" aria-hidden="true" />
+            Remove Web UI
+          </button>
+        </div>
+
+        {error && <p className="text-sm font-medium text-red-700 dark:text-red-300">{error}</p>}
       </div>
     </div>
   );
@@ -326,11 +429,19 @@ function AppCard({ app, refresh }) {
             <div className="mt-3 flex flex-wrap gap-2">
               {app.missingIcon ? <Badge tone="warn">Missing icon</Badge> : <Badge tone="good">Has icon</Badge>}
               {app.managed && <Badge tone="managed">Managed</Badge>}
+              {app.portalUrl && <Badge tone="good">Has Web UI</Badge>}
+              {app.portalManaged && <Badge tone="managed">Web UI managed</Badge>}
+              {(app.ports || []).map((port) => (
+                <Badge key={`${port.protocol}-${port.hostPort}-${port.containerPort}`}>
+                  Port {formatPort(port)}
+                </Badge>
+              ))}
               {app.custom_app && <Badge>Custom app</Badge>}
             </div>
           </div>
         </div>
       </div>
+      <PortalEditor app={app} onSaved={refresh} onRemoved={refresh} />
       <AppEditor app={app} onSaved={refresh} onRemoved={refresh} />
     </article>
   );
@@ -345,6 +456,7 @@ function App() {
   const [logMeta, setLogMeta] = useState({ total: 0, hasMore: false });
   const [metadataStatus, setMetadataStatus] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [scanningPorts, setScanningPorts] = useState(false);
   const [status, setStatus] = useState('');
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'system');
 
@@ -379,10 +491,28 @@ function App() {
     await fetchLogs(logPage);
   }
 
+  async function scanPorts() {
+    setScanningPorts(true);
+    try {
+      const portsBody = await api('/api/apps/ports');
+      const portsByName = new Map((portsBody.apps || []).map((app) => [app.name, app.ports || []]));
+      setApps((currentApps) => currentApps.map((app) => (
+        portsByName.has(app.name) ? { ...app, ports: portsByName.get(app.name) } : app
+      )));
+    } catch (error) {
+      setStatus(`Port scan skipped: ${error.message}`);
+    } finally {
+      setScanningPorts(false);
+    }
+  }
+
   useEffect(() => {
     refresh()
       .catch((error) => setStatus(error.message))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        scanPorts();
+      });
   }, []);
 
   useEffect(() => {
@@ -399,12 +529,13 @@ function App() {
   }, [apps, filter, query]);
 
   async function reapply() {
-    setStatus('Reapplying saved icon mappings...');
+    setStatus('Reapplying saved icon and Web UI mappings...');
     try {
       const result = await api('/api/reapply', { method: 'POST' });
-      setStatus(result.changed ? `Reapplied icons for ${result.patchedApps.join(', ')}` : 'Saved icons are already applied.');
+      setStatus(result.changed ? `Reapplied mappings for ${result.patchedApps.join(', ')}` : 'Saved mappings are already applied.');
       setLogPage(0);
       await refresh();
+      scanPorts();
     } catch (error) {
       setStatus(error.message);
     }
@@ -478,8 +609,20 @@ function App() {
 
           {status && <div className="rounded-lg border border-line bg-white dark:border-slate-800 dark:bg-slate-900 px-4 py-3 text-sm text-slate-700 dark:text-slate-200 shadow-soft">{status}</div>}
 
+          {scanningPorts && (
+            <div className="rounded-lg border border-teal-100 bg-teal-50 px-4 py-3 text-sm text-teal-900 shadow-soft dark:border-teal-900 dark:bg-teal-950/50 dark:text-teal-100">
+              <div className="flex flex-col gap-2">
+                <p className="font-semibold">Scanning custom app ports</p>
+                <p className="text-xs text-teal-800 dark:text-teal-200">Checking custom app config YAML for host port mappings. The app list is ready while this finishes.</p>
+                <div className="h-2 overflow-hidden rounded-full bg-teal-100 dark:bg-teal-950">
+                  <div className="h-full w-1/3 animate-pulse rounded-full bg-ocean dark:bg-teal-500" />
+                </div>
+              </div>
+            </div>
+          )}
+
           {loading ? (
-            <div className="rounded-lg border border-line bg-white dark:border-slate-800 dark:bg-slate-900 p-6 text-sm text-slate-600 dark:text-slate-300 shadow-soft">Loading apps...</div>
+            <div className="rounded-lg border border-line bg-white dark:border-slate-800 dark:bg-slate-900 p-6 text-sm text-slate-600 dark:text-slate-300 shadow-soft">Loading app list from TrueNAS metadata...</div>
           ) : visibleApps.length > 0 ? (
             <div className="space-y-4">
               {visibleApps.map((app) => (

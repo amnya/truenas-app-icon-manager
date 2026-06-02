@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.1.0 - Web UI Portal Support
+
+- Added custom app Web UI URL management.
+- Added backend APIs for saving and removing custom app Web UI portal mappings.
+- Added metadata patching for `<app-name>.portals.Web UI`.
+- Added a dashboard editor for setting the TrueNAS Web UI button URL on custom apps.
+- Preserved icon mappings when removing Web UI mappings, and preserved Web UI mappings when removing icon mappings.
+- Added tests for Web UI portal metadata patching.
+
 ## v1.0.0 - Initial Public Release
 
 - Added the first public release of TrueNAS App Icon Manager.

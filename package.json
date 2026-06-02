@@ -1,6 +1,6 @@
 {
   "name": "truenas-app-icon-manager",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "Self-hosted TrueNAS SCALE helper app for managing custom Apps UI icons.",
   "type": "module",

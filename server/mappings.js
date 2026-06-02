@@ -25,15 +25,63 @@ export async function writeMappings(mappings) {
   await fs.rename(temp, paths.mappingsFile);
 }
 
+function pruneEmptyMapping(mappings, appName) {
+  const mapping = mappings[appName];
+  if (!mapping) return;
+
+  if (!mapping.icon && !mapping.portal) {
+    delete mappings[appName];
+  }
+}
+
 export async function upsertMapping(appName, icon, source = 'manual') {
   const mappings = await readMappings();
   mappings[appName] = {
+    ...(mappings[appName] || {}),
     icon,
     source,
     updatedAt: new Date().toISOString()
   };
   await writeMappings(mappings);
   return mappings[appName];
+}
+
+export async function upsertPortalMapping(appName, portal, source = 'manual') {
+  const mappings = await readMappings();
+  mappings[appName] = {
+    ...(mappings[appName] || {}),
+    portal,
+    portalSource: source,
+    portalUpdatedAt: new Date().toISOString()
+  };
+  await writeMappings(mappings);
+  return mappings[appName];
+}
+
+export async function deleteIconMapping(appName) {
+  const mappings = await readMappings();
+  const existed = Boolean(mappings[appName]?.icon);
+  if (mappings[appName]) {
+    delete mappings[appName].icon;
+    delete mappings[appName].source;
+    delete mappings[appName].updatedAt;
+    pruneEmptyMapping(mappings, appName);
+  }
+  await writeMappings(mappings);
+  return existed;
+}
+
+export async function deletePortalMapping(appName) {
+  const mappings = await readMappings();
+  const existed = Boolean(mappings[appName]?.portal);
+  if (mappings[appName]) {
+    delete mappings[appName].portal;
+    delete mappings[appName].portalSource;
+    delete mappings[appName].portalUpdatedAt;
+    pruneEmptyMapping(mappings, appName);
+  }
+  await writeMappings(mappings);
+  return existed;
 }
 
 export async function deleteMapping(appName) {

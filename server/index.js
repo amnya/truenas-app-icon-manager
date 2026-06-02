@@ -5,7 +5,7 @@ import fs from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { config } from './config.js';
 import { log, readLogs } from './logger.js';
-import { deleteMapping, ensureConfigDirs, readMappings, upsertMapping } from './mappings.js';
+import { deleteIconMapping, deletePortalMapping, ensureConfigDirs, readMappings, upsertMapping, upsertPortalMapping } from './mappings.js';
 import { fetchIconToDataUri, fileToDataUri, validateDataUri, validateIconUrl } from './icons.js';
 import { findDashboardIconSuggestions, isDashboardIconUrl } from './dashboard-icons.js';
 import { getMetadataStatus, listApps, readMetadata, reapplyMappings, startMetadataPoller } from './metadata.js';
@@ -28,6 +28,25 @@ function badRequest(message) {
   return error;
 }
 
+function validatePortalUrl(value) {
+  const trimmed = String(value || '').trim();
+  if (!trimmed) throw badRequest('Provide a Web UI URL');
+  if (trimmed.length > 2048) throw badRequest('Web UI URL is too long');
+
+  let parsed;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    throw badRequest('Web UI URL must be a valid absolute URL');
+  }
+
+  if (!['http:', 'https:'].includes(parsed.protocol)) {
+    throw badRequest('Web UI URL must start with http:// or https://');
+  }
+
+  return parsed.toString();
+}
+
 app.get('/api/health', asyncHandler(async (_req, res) => {
   await readMetadata();
   res.json({
@@ -42,6 +61,10 @@ app.get('/api/health', asyncHandler(async (_req, res) => {
 
 app.get('/api/apps', asyncHandler(async (_req, res) => {
   res.json({ apps: await listApps() });
+}));
+
+app.get('/api/apps/ports', asyncHandler(async (_req, res) => {
+  res.json({ apps: await listApps({ includePorts: true }) });
 }));
 
 app.get('/api/mappings', asyncHandler(async (_req, res) => {
@@ -107,8 +130,23 @@ app.post('/api/mappings/:appName', upload.single('iconFile'), asyncHandler(async
 }));
 
 app.delete('/api/mappings/:appName', asyncHandler(async (req, res) => {
-  const existed = await deleteMapping(req.params.appName);
+  const existed = await deleteIconMapping(req.params.appName);
   await log('info', 'Removed icon mapping', { appName: req.params.appName, existed });
+  res.json({ ok: true, existed });
+}));
+
+app.post('/api/portals/:appName', asyncHandler(async (req, res) => {
+  const { appName } = req.params;
+  const url = validatePortalUrl(req.body?.url);
+  const mapping = await upsertPortalMapping(appName, { label: 'Web UI', url }, 'manual');
+  const result = await reapplyMappings({ reason: `Web UI URL saved for ${appName}`, debounceMs: 500 });
+  await log('info', 'Saved Web UI URL mapping', { appName, url });
+  res.json({ mapping, reapply: result });
+}));
+
+app.delete('/api/portals/:appName', asyncHandler(async (req, res) => {
+  const existed = await deletePortalMapping(req.params.appName);
+  await log('info', 'Removed Web UI URL mapping', { appName: req.params.appName, existed });
   res.json({ ok: true, existed });
 }));
 
